@@ -161,9 +161,9 @@ public class ExeclProcessT {
 //        HttpGet get = new HttpGet("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php");
         HttpGet get = new HttpGet("https://covid-api.caduo.ml/latest.json?t="+System.currentTimeMillis());
 //        Document doc = Jsoup.connect("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php").get();
-        HttpEntity entity = httpClient.execute(get).getEntity();
-        String s = EntityUtils.toString(entity);
-//        String s = mock();
+//        HttpEntity entity = httpClient.execute(get).getEntity();
+//        String s = EntityUtils.toString(entity);
+        String s = mock();
         JSONObject parse = JSON.parseObject(s);
         JSONArray highlist = parse.getJSONObject("data").getJSONArray("highlist");
         List<YQ> gyqs = highlist.toJavaList(YQ.class).stream().map(r-> {
@@ -295,10 +295,9 @@ public String mock() throws IOException {
         mergeSpecifiedColumn(sheet,2, workbook);
         mergeSpecifiedColumn(sheet,3, workbook);
 
-//        HSSFCellStyle g = workbook.createCellStyle();
-//        style.setFillForegroundColor(IndexedColors.PINK.getIndex());
-//        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-//        sheet.getRow(2).getCell(0).setCellStyle(g);
+
+
+        setRegionStyle2(sheet,new CellRangeAddress(3,50,0,0),workbook);
 //
 //        HSSFCellStyle m = workbook.createCellStyle();
 //        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
@@ -393,6 +392,33 @@ public String mock() throws IOException {
                 cs.setFillForegroundColor(cellStyle.getFillForegroundColor());
                 cs.setFillPattern(cellStyle.getFillPatternEnum());
                 cs.setFont(cellStyle.getFont(workbook));
+                cell.setCellStyle(cs);
+            }
+        }
+    }
+
+    private static void setRegionStyle2(HSSFSheet sheet, CellRangeAddress region, HSSFWorkbook workbook) {
+
+        HSSFCellStyle style = workbook.createCellStyle();
+        HSSFCellStyle cs = style;
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+        style.setAlignment(HorizontalAlignment.CENTER_SELECTION);
+        style.setBorderBottom(BorderStyle.THIN); //下边框
+        style.setBorderLeft(BorderStyle.THIN);//左边框
+        style.setBorderTop(BorderStyle.THIN);//上边框
+        style.setBorderRight(BorderStyle.THIN);//右边框
+
+        for (int i = region.getFirstRow(); i <= region.getLastRow(); i++) {
+            HSSFRow row = sheet.getRow(i);
+            HSSFCell cell = null;
+            //循环设置单元格样式
+            for (int j = region.getFirstColumn(); j <= region.getLastColumn(); j++) {
+                cell = row.getCell((short) j);
+                HSSFCellStyle cellStyle = cell.getCellStyle();
+                cs.setFillForegroundColor(IndexedColors.PINK.getIndex());
+                cs.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                cs.setFont(cellStyle.getFont(workbook));
+
                 cell.setCellStyle(cs);
             }
         }
