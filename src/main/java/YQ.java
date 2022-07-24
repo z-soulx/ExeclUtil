@@ -8,7 +8,8 @@ import java.util.List;
  * @verison $Id: Root v 0.1 2022-07-23 21:11:17
  */
 public class YQ{
-
+    private boolean b;
+    private String fx;
     /**
      * <pre>
      *
@@ -44,6 +45,14 @@ public class YQ{
      */
     private String	area_name;
 
+    public String getFx() {
+        return fx;
+    }
+
+    public void setFx(String fx) {
+        this.fx = fx;
+    }
+
     /**
      * <pre>
      * communitys
@@ -51,6 +60,13 @@ public class YQ{
      */
     private List<String> communitys;
 
+    public boolean getB() {
+        return b;
+    }
+
+    public void setB(Boolean b) {
+        this.b = b;
+    }
 
     public String getType() {
         return this.type;
