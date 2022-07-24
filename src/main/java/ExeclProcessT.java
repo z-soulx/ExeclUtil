@@ -106,7 +106,8 @@ public class ExeclProcessT {
                     e.printStackTrace();
                 }
                 List<String> objects = Lists.newArrayList();
-                objects.add(d);
+                String[] s = r.getArea_name().split(" ");
+                objects.add(s[s.length - 1]+d);
                     g.put("c",g.getOrDefault("c",0) + 1);
                     g.put("S"+yq.getProvince(), g.getOrDefault("S"+yq.getProvince(), 0) + 1);
                     g.put("s"+yq.getCity(), g.getOrDefault("s"+yq.getCity(), 0) + 1);
@@ -128,7 +129,8 @@ public class ExeclProcessT {
                     e.printStackTrace();
                 }
                 List<String> objects = Lists.newArrayList();
-                objects.add(d);
+                String[] s = r.getArea_name().split(" ");
+                objects.add(s[s.length - 1]+d);
 
                     m.put("c",m.getOrDefault("c",0) + 1);
                     m.put("S"+ yq.getProvince(), m.getOrDefault("S"+yq.getProvince(), 0) + 1);
