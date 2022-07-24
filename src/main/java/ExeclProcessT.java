@@ -6,6 +6,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.beust.jcommander.internal.Lists;
+import com.google.common.base.Charsets;
+import com.google.common.io.Files;
 import jxl.Cell;
 import jxl.Sheet;
 import jxl.Workbook;
@@ -13,8 +15,11 @@ import jxl.read.biff.BiffException;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
@@ -23,40 +28,19 @@ import org.junit.Test;
 import org.testng.collections.Sets;
 import org.testng.internal.collections.Pair;
 
+import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ExeclProcessT {
 
-    public static void main(String[] args) {
-
-        // 读取Excel文件
-//        File file = new File("D:/execl.xls");
-        try {
-            //得到所有数据
-            List<Bo> allData = read();
-
-            //直接将它写到excel中
-//            List<Bo> result = dealData(allData);
-            List<Bo> result = null;
-//            makeExcel(result);
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-    }
-
-    private static List<Bo> read() {
-
-        return null;
-    }
     @Test
-    public void test() throws IOException, BiffException {
+    public void test() throws Exception {
         try {
             Pair<List<YQ>, List<YQ>> listListPair = doGet();
             List<YQ> dealyqs = dealyqs(listListPair);
@@ -179,6 +163,7 @@ public class ExeclProcessT {
 //        Document doc = Jsoup.connect("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php").get();
         HttpEntity entity = httpClient.execute(get).getEntity();
         String s = EntityUtils.toString(entity);
+//        String s = mock();
         JSONObject parse = JSON.parseObject(s);
         JSONArray highlist = parse.getJSONObject("data").getJSONArray("highlist");
         List<YQ> gyqs = highlist.toJavaList(YQ.class).stream().map(r-> {
@@ -200,7 +185,10 @@ public class ExeclProcessT {
         return Pair.create(gyqs,myqs);
     }
 
-
+public String mock() throws IOException {
+    String result = Files.asCharSource(new File("E:\\aaa.txt"), Charsets.UTF_8).read();
+    return result;
+    }
     /**
      * 将数据写入到excel中
      */
@@ -209,14 +197,25 @@ public class ExeclProcessT {
         //第一步，创建一个workbook对应一个excel文件
         HSSFWorkbook workbook = new HSSFWorkbook();
 
-        HSSFCellStyle cellStyle = workbook.createCellStyle();
-        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-        cellStyle.setAlignment(HorizontalAlignment.CENTER_SELECTION);
 
         HSSFCellStyle fontStyle = workbook.createCellStyle();
         HSSFFont font = workbook.createFont();//创建字体
         font.setColor(IndexedColors.RED.getIndex());//设置字体颜色
+        font.setFontName("方正楷体_GB方正楷体_GBKK");
+        font.setFontHeightInPoints((short) 10);
         fontStyle.setFont(font);
+
+        HSSFCellStyle fontcStyle = workbook.createCellStyle();
+        HSSFFont font2 = workbook.createFont();//创建字体
+        font2.setColor(IndexedColors.BLACK.getIndex());//设置字体颜色
+        font2.setFontName("方正楷体_GB方正楷体_GBKK");
+        font2.setFontHeightInPoints((short) 10);
+        fontcStyle.setFont(font2);
+
+        HSSFCellStyle cellStyle = workbook.createCellStyle();
+        cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        cellStyle.setAlignment(HorizontalAlignment.CENTER_SELECTION);
+        cellStyle.setFont(font2);
 
         HSSFCellStyle style = workbook.createCellStyle();
         style.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
@@ -230,6 +229,10 @@ public class ExeclProcessT {
 
         //第二部，在workbook中创建一个sheet对应excel中的sheet
         HSSFSheet sheet = workbook.createSheet("resultFormants");
+        HSSFFont sfont = sheet.getWorkbook().getFontAt((short) 0);
+        sfont.setColor(IndexedColors.BLACK.getIndex());//设置字体颜色
+        sfont.setFontName("方正楷体_GB方正楷体_GBKK");
+        sfont.setFontHeightInPoints((short) 10);
         //第三部，在sheet表中添加表头第0行，老版本的poi对sheet的行列有限制
         HSSFRow row = sheet.createRow(0);
         //第四步，创建单元格，设置表头
@@ -292,6 +295,17 @@ public class ExeclProcessT {
         mergeSpecifiedColumn(sheet,2, workbook);
         mergeSpecifiedColumn(sheet,3, workbook);
 
+//        HSSFCellStyle g = workbook.createCellStyle();
+//        style.setFillForegroundColor(IndexedColors.PINK.getIndex());
+//        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//        sheet.getRow(2).getCell(0).setCellStyle(g);
+//
+//        HSSFCellStyle m = workbook.createCellStyle();
+//        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+//        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//        String value = sheet.getRow(2).getCell(0).getStringCellValue();
+//        String substring = value.substring(value.indexOf("(") + 1, value.indexOf(")"));
+//        sheet.getRow(Integer.valueOf(substring) + 3).getCell(0).setCellStyle(m);
 
         //将文件保存到指定的位置
         try {
