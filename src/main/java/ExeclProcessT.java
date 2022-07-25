@@ -161,9 +161,9 @@ public class ExeclProcessT {
 //        HttpGet get = new HttpGet("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php");
         HttpGet get = new HttpGet("https://covid-api.caduo.ml/latest.json?t="+System.currentTimeMillis());
 //        Document doc = Jsoup.connect("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php").get();
-//        HttpEntity entity = httpClient.execute(get).getEntity();
-//        String s = EntityUtils.toString(entity);
-        String s = mock();
+        HttpEntity entity = httpClient.execute(get).getEntity();
+        String s = EntityUtils.toString(entity);
+//        String s = mock();
         JSONObject parse = JSON.parseObject(s);
         JSONArray highlist = parse.getJSONObject("data").getJSONArray("highlist");
         List<YQ> gyqs = highlist.toJavaList(YQ.class).stream().map(r-> {
@@ -253,7 +253,9 @@ public String mock() throws IOException {
          row11.createCell(4).setCellValue("具体地区");
         Set<String> strings = null;
         try {
-            strings = readExcel(new File("E:\\全国中高风险区域一览表_220723.xls"));
+            SimpleDateFormat sf = new SimpleDateFormat("yyMMdd");
+            String sd = sf.format(new Date(System.currentTimeMillis() - 24 *60*60*1000));
+            strings = readExcel(new File("/Users/soulx/Desktop/PG/msic/ExeclUtil/src/main/java/file/全国中高风险区域一览表_"+sd+".xls"));
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -265,7 +267,14 @@ public String mock() throws IOException {
             HSSFRow row1 = sheet.createRow(i + 2);
 
 //            //创建单元格设值
-            row1.createCell(0).setCellValue(oneData.getFx());
+            HSSFCell cell0 = row1.createCell(0);
+            cell0.setCellValue(oneData.getFx());
+
+//            HSSFCellStyle ct = cell.getCellStyle();
+//            ct.setFillForegroundColor(IndexedColors.PINK.getIndex());
+//            ct.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//            cell0.setCellStyle(ct);
+
             HSSFCell cell1 = row1.createCell(1);
             cell1.setCellValue(oneData.getFx().contains("高") ? count1++ : count2++);
             HSSFCell cell2 = row1.createCell(2);
@@ -297,7 +306,7 @@ public String mock() throws IOException {
 
 
 
-        setRegionStyle2(sheet,new CellRangeAddress(3,50,0,0),workbook);
+//        setRegionStyle2(sheet,new CellRangeAddress(3,50,0,0),workbook);
 //
 //        HSSFCellStyle m = workbook.createCellStyle();
 //        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
@@ -308,7 +317,10 @@ public String mock() throws IOException {
 
         //将文件保存到指定的位置
         try {
-            File file = new File("E:\\result.xls");
+            SimpleDateFormat sf = new SimpleDateFormat("yyMMdd");
+            String sd = sf.format(new Date(System.currentTimeMillis()));
+
+            File file = new File("/Users/soulx/Desktop/PG/msic/ExeclUtil/src/main/java/file/全国中高风险区域一览表_"+sd+".xls");
             if (file.exists()) {
                 file.delete();
             }
@@ -386,7 +398,7 @@ public String mock() throws IOException {
             HSSFRow row = sheet.getRow(i);
             HSSFCell cell = null;
             //循环设置单元格样式
-            for (int j = region.getFirstColumn(); j <= region.getLastColumn(); j++) {
+            for (int j = 2; j <= region.getLastColumn(); j++) {
                 cell = row.getCell((short) j);
                 HSSFCellStyle cellStyle = cell.getCellStyle();
                 cs.setFillForegroundColor(cellStyle.getFillForegroundColor());
