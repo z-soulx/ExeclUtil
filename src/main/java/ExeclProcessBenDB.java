@@ -62,7 +62,7 @@ public class ExeclProcessBenDB {
         Elements m = select.select("div.middle.info-item");
         String text2 = doc.select("div.fx-item.middle-fx").text();
         String[] split2 = text2.split("\\s");
-        String s2 = "中风险(" + split[0].substring(0, split2[0].length() - 1) + ")";
+        String s2 = "中风险(" + split2[0].substring(0, split2[0].length() - 1) + ")";
         List<YQ2> myq = paseHtml(m,s2 ,1);
 
         gyq.sort(new Comparator<YQ2>(){
