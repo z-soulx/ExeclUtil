@@ -319,10 +319,16 @@ public String mock() throws IOException {
         try {
             SimpleDateFormat sf = new SimpleDateFormat("yyMMdd");
             String sd = sf.format(new Date(System.currentTimeMillis()));
+            String sd22 = sf.format(new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000));
 
-            File file = new File("/Users/soulx/Desktop/PG/msic/ExeclUtil/src/main/java/file/全国中高风险区域一览表_"+sd+".xls");
+            File file = new File(System.getProperty("user.dir") +"/src/main/java/file/全国中高风险区域一览表_"+sd+".xls");
+            File file2 = new File(System.getProperty("user.dir") +"/src/main/java/file/全国中高风险区域一览表_"+sd22+".xls");
             if (file.exists()) {
                 file.delete();
+            }
+            if (file2.exists()) {
+
+                file2.delete();
             }
             FileOutputStream fos = new FileOutputStream(file);
 
@@ -436,5 +442,10 @@ public String mock() throws IOException {
         }
     }
 
-
+    public static void main(String[] args) {
+        System.out.println(System.getProperty("user.dir"));
+//        /Users/soulx/Desktop/PG/msic/ExeclUtil/src/main/java/file/
+        File file = new File(System.getProperty("user.dir") +"/src/main/java/file/全国中高风险区域一览表_220802.xls");
+        System.out.println(file.exists());
+    }
 }

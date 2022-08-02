@@ -258,9 +258,10 @@ public class ExeclProcessBenDB {
             String substring = oneData.getCommunitys();
 
             HSSFCell cell4 = row1.createCell(4);
+//            if (strings.contains(substring) && oneData.isB()) {
             if (strings.contains(substring)) {
                 cell4.setCellStyle(fontStyle);
-                cell4.setCellValue( substring+ "(新)");
+                cell4.setCellValue( substring+ (oneData.isB() ? "(新)" : ""));
             } else {
                 cell4.setCellValue(substring);
             }
