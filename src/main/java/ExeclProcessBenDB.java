@@ -140,7 +140,7 @@ public class ExeclProcessBenDB {
 
 
     private static int backGroup(YQ2 province) {
-        String[] split = "新疆维吾尔自治区、西藏自治区、四川省、云南省、贵州省、重庆市、湖北省、陕西省、甘肃省、宁夏回族自治区、青海省".split("、");
+        String[] split = "新疆维吾尔自治区、新疆生产建设兵团、西藏自治区、四川省、云南省、贵州省、重庆市、湖北省、陕西省、甘肃省、宁夏回族自治区、青海省".split("、");
         Set<String> ss = Sets.newHashSet();
         for (String s : split) {
             ss.add(s);
