@@ -217,6 +217,15 @@ public class ExeclProcessBenDB {
         row11.createCell(3).setCellValue("城市（地区）");
         row11.createCell(4).setCellValue("具体地区");
 
+        HSSFCellStyle ct = workbook.createCellStyle();
+        ct.setFillForegroundColor(IndexedColors.PINK.getIndex());
+        ct.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        ct.setVerticalAlignment(VerticalAlignment.CENTER);
+        ct.setAlignment(HorizontalAlignment.CENTER_SELECTION);
+        ct.setBorderBottom(BorderStyle.THIN); //下边框
+        ct.setBorderLeft(BorderStyle.THIN);//左边框
+        ct.setBorderTop(BorderStyle.THIN);//上边框
+        ct.setBorderRight(BorderStyle.THIN);
         //第五步，写入数据
         int count1 = 1,count2 = 1;
         for (int i = 0; i < result.size(); i++) {
@@ -227,15 +236,7 @@ public class ExeclProcessBenDB {
             HSSFCell cell0 = row1.createCell(0);
             cell0.setCellValue(oneData.getFx());
 
-            HSSFCellStyle ct = workbook.createCellStyle();
-            ct.setFillForegroundColor(IndexedColors.PINK.getIndex());
-            ct.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            ct.setVerticalAlignment(VerticalAlignment.CENTER);
-            ct.setAlignment(HorizontalAlignment.CENTER_SELECTION);
-            ct.setBorderBottom(BorderStyle.THIN); //下边框
-            ct.setBorderLeft(BorderStyle.THIN);//左边框
-            ct.setBorderTop(BorderStyle.THIN);//上边框
-            ct.setBorderRight(BorderStyle.THIN);
+
 
             HSSFCellStyle ct2 = workbook.createCellStyle();
             ct2.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
@@ -286,7 +287,7 @@ public class ExeclProcessBenDB {
             SimpleDateFormat sf = new SimpleDateFormat("yyMMdd");
             String sd = sf.format(new Date(System.currentTimeMillis()));
 
-            File file = new File("/Users/soulx/Desktop/PG/msic/ExeclUtil/src/main/java/file/全国中高风险区域一览表_"+sd+".xls");
+            File file = new File("C:\\Users\\zx\\Desktop\\pg\\ExeclUtil\\src\\main\\java\\file\\全国中高风险区域一览表_"+sd+".xls");
             if (file.exists()) {
                 file.delete();
             }
