@@ -1,3 +1,6 @@
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.beust.jcommander.internal.Lists;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -10,6 +13,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jxl.read.biff.BiffException;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFont;
@@ -23,6 +31,7 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.jsoup.Jsoup;
+import org.jsoup.helper.HttpConnection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -39,7 +48,7 @@ public class ExeclProcessBenDB {
     @Test
     public void test() throws Exception {
         try {
-            Pair<List<YQ2>, Set<String>> source = source();
+            Pair<List<YQ2>, Set<String>> source = source2();
             makeExcel(source.first(),source.second());
         } catch (IOException | BiffException e) {
             e.printStackTrace();
@@ -47,31 +56,42 @@ public class ExeclProcessBenDB {
         }
     }
 
-    public Pair< List<YQ2>, Set<String>> source() throws IOException {
-
-        Document doc = Jsoup.connect("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php").get();
-        Elements select = doc.select("div.info");
 
 
-        Elements g = select.select("div.height.info-item");
-        String text = doc.select("div.fx-item.high-fx").text();
-        String[] split = text.split("\\s");
-        String s = "高风险(" + split[0].substring(0, split[0].length() - 1) + ")";
-        List<YQ2> gyq = paseHtml(g, s,0);
+    public Pair<List<YQ2>,Set<String>>   source2() throws IOException {
 
-        Elements m = select.select("div.middle.info-item");
-        String text2 = doc.select("div.fx-item.middle-fx").text();
-        String[] split2 = text2.split("\\s");
-        String s2 = "中风险(" + split2[0].substring(0, split2[0].length() - 1) + ")";
-        List<YQ2> myq = paseHtml(m,s2 ,1);
+        //创建HttpClient对象
 
-        gyq.sort(new Comparator<YQ2>(){
+        BdbVo gyqVo = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=高风险");
+        String s = "高风险(" + gyqVo.getCount() + ")";
+        List<YQ2> gyq = getYq2s(gyqVo, s,0);
+
+
+        BdbVo myqVo = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=中风险");
+        String s2 = "中风险(" + myqVo.getCount() + ")";
+        List<YQ2> myq = getYq2s(myqVo, s2,1);
+
+        sort(s, gyq, s2, myq);
+        System.out.println(gyq);
+
+
+        BdbVo tg = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=今日调高");
+        BdbVo tm = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=今日调中");
+        tg.getData().addAll(tm.getData());
+        Set<String> collect = tg.getData().stream()
+            .flatMap(r -> r.getQu().stream().map(rr -> rr.getQu())).collect(Collectors.toSet());
+        return Pair.create(gyq,collect);
+
+    }
+
+    private void sort(String s, List<YQ2> gyq, String s2, List<YQ2> myq) {
+        gyq.sort(new Comparator<YQ2>() {
             @Override
             public int compare(YQ2 o1, YQ2 o2) {
                 return backGroup(o2) - backGroup(o1);
             }
         });
-        myq.sort(new Comparator<YQ2>(){
+        myq.sort(new Comparator<YQ2>() {
             @Override
             public int compare(YQ2 o1, YQ2 o2) {
                 return backGroup(o2) - backGroup(o1);
@@ -79,15 +99,64 @@ public class ExeclProcessBenDB {
         });
 
         gyq.forEach(r -> {
-            r.setProvince(r.getProvince() +"("+countm.get(s+r.getProvince())+")");
+            r.setProvince(r.getProvince() + "(" + countm.get(s + r.getProvince()) + ")");
         });
 
         myq.forEach(r -> {
-            r.setProvince(r.getProvince() +"("+countm.get(s2+r.getProvince())+")");
+            r.setProvince(r.getProvince() + "(" + countm.get(s2 + r.getProvince()) + ")");
         });
 
         gyq.addAll(myq);
+    }
 
+    private BdbVo getBdbVo(String url) throws IOException {
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        HttpGet get = new HttpGet(url);
+        HttpEntity entity = httpClient.execute(get).getEntity();
+        String myqVos = EntityUtils.toString(entity,"UTF-8");
+        return JSON.parseObject(myqVos, BdbVo.class);
+    }
+
+    private List<YQ2> getYq2s(BdbVo bdbVo, String s2,int type) {
+        List<YQ2> rp = Lists.newArrayList();
+        bdbVo.getData().forEach(r -> {
+
+            r.getQu().forEach(rr -> {
+                YQ2 y = new YQ2();
+                y.setProvince(r.getProvince());
+                y.setCity(r.getCityname() +"(" + r.getQu().size()+")");
+                y.setCommunitys(rr.getQu());
+                y.setType(type);
+                y.setFx(s2);
+                countm.put(s2+r.getProvince(),countm.getOrDefault(s2+r.getProvince(),0) + 1);
+                rp.add(y);
+            });
+        });
+        return rp;
+    }
+
+    public Pair< List<YQ2>, Set<String>> source() throws IOException {
+
+//        Document doc = Jsoup.connect("http://m.bendibao.com/news/gelizhengce/fengxianmingdan.php").get();
+        Document doc = Jsoup.parse(new File("/Users/soulx/Downloads/tmp.html"),"utf-8");
+        Elements select = doc.select("div.info");
+
+
+//        Elements g = select.select("div.height.info-item");
+        Elements g = select;
+        String text = doc.select("div.fx-item.high-fx").text();
+        String[] split = text.split("\\s");
+        String s = "高风险(" + split[0].substring(0, split[0].length() - 1) + ")";
+        List<YQ2> gyq = paseHtml(g, s,0);
+
+//        Elements m = select.select("div.middle.info-item");
+        Elements m = select;
+        String text2 = doc.select("div.fx-item.middle-fx").text();
+        String[] split2 = text2.split("\\s");
+        String s2 = "中风险(" + split2[0].substring(0, split2[0].length() - 1) + ")";
+        List<YQ2> myq = paseHtml(m,s2 ,1);
+
+        sort(s, gyq, s2, myq);
 
         Elements md = select.select("div.tiaodi.info-item");
         List<YQ2> mdyq = paseHtml(md, "",5);
@@ -99,12 +168,26 @@ public class ExeclProcessBenDB {
 
     private List<YQ2> paseHtml(Elements g,String fx,int type) {
         List<YQ2> r = Lists.newArrayList();
-        for (Element element1 : g) {
-        for (Element element : element1.select("div.info-list")) {
+//        for (Element element1 : g) {
+//        for (Element element : element1.select("div.info-list")) {
+        if (type == 0) {
+            Elements elements = new Elements();
+            for (Element element1 : g) {
+                for (Element element : element1.select("div.info-list")) {
+                    elements.add(element);
+                }
+            }
+            g = elements;
+        }
+        for (Element element : g) {
             Elements select1 = element.select("div.shi.flex-between");
-            Elements select2 = element.select("ul.info-detail");
+//            Elements select2 = element.select("ul.info-detail");
+            Elements select2 = element.select("div.info-detail");
             int size = select1.size();
             for (int i = 0; i < size; i++) {
+                if (select1.get(i).text().contains("重庆市")) {
+                    System.out.println();
+                }
                 String[] split = select1.get(i).text().split("\\s");
                 String shen = split[0];
                 if(split.length == 3) {
@@ -134,13 +217,14 @@ public class ExeclProcessBenDB {
             System.out.println();
 
         }
-        }
+//        }
         return r;
     }
 
 
     private static int backGroup(YQ2 province) {
-        String[] split = "新疆维吾尔自治区、新疆生产建设兵团、西藏自治区、四川省、云南省、贵州省、重庆市、湖北省、陕西省、甘肃省、宁夏回族自治区、青海省".split("、");
+//        String[] split = "新疆维吾尔自治区、新疆生产建设兵团、西藏自治区、四川省、云南省、贵州省、重庆市、湖北省、陕西省、甘肃省、宁夏回族自治区、青海省".split("、");
+        String[] split = "新疆、西藏、四川、云南、贵州、重庆、湖北、陕西、甘肃、宁夏、青海".split("、");
         Set<String> ss = Sets.newHashSet();
         for (String s : split) {
             ss.add(s);
@@ -287,7 +371,7 @@ public class ExeclProcessBenDB {
             SimpleDateFormat sf = new SimpleDateFormat("yyMMdd");
             String sd = sf.format(new Date(System.currentTimeMillis()));
 
-            File file = new File("C:\\Users\\zx\\Desktop\\pg\\ExeclUtil\\src\\main\\java\\file\\全国中高风险区域一览表_"+sd+".xls");
+            File file = new File("/Users/soulx/Desktop/PG/msic/ExeclUtil/src/main/java/file/全国中高风险区域一览表_"+sd+".xls");
             if (file.exists()) {
                 file.delete();
             }
