@@ -1,6 +1,4 @@
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.beust.jcommander.internal.Lists;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,7 +29,6 @@ import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.HttpConnection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -312,6 +309,15 @@ public class ExeclProcessBenDB {
         ct.setBorderRight(BorderStyle.THIN);
         //第五步，写入数据
         int count1 = 1,count2 = 1;
+        HSSFCellStyle ct2 = workbook.createCellStyle();
+        ct2.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        ct2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        ct2.setVerticalAlignment(VerticalAlignment.CENTER);
+        ct2.setAlignment(HorizontalAlignment.CENTER_SELECTION);
+        ct2.setBorderBottom(BorderStyle.THIN); //下边框
+        ct2.setBorderLeft(BorderStyle.THIN);//左边框
+        ct2.setBorderTop(BorderStyle.THIN);//上边框
+        ct2.setBorderRight(BorderStyle.THIN);
         for (int i = 0; i < result.size(); i++) {
             YQ2 oneData = result.get(i);
             HSSFRow row1 = sheet.createRow(i + 2);
@@ -319,18 +325,6 @@ public class ExeclProcessBenDB {
 //            //创建单元格设值
             HSSFCell cell0 = row1.createCell(0);
             cell0.setCellValue(oneData.getFx());
-
-
-
-            HSSFCellStyle ct2 = workbook.createCellStyle();
-            ct2.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-            ct2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-            ct2.setVerticalAlignment(VerticalAlignment.CENTER);
-            ct2.setAlignment(HorizontalAlignment.CENTER_SELECTION);
-            ct2.setBorderBottom(BorderStyle.THIN); //下边框
-            ct2.setBorderLeft(BorderStyle.THIN);//左边框
-            ct2.setBorderTop(BorderStyle.THIN);//上边框
-            ct2.setBorderRight(BorderStyle.THIN);
 
             cell0.setCellStyle(oneData.getType() == 0 ? ct : ct2);
 
@@ -388,6 +382,7 @@ public class ExeclProcessBenDB {
         int totalRows = sheet.getLastRowNum(), firstRow = 0, lastRow = 0;
         boolean isLastCompareSame = false;//上一次比较是否相同
         //这里第一行是表头，从第三行开始判断是否相同
+        HSSFCellStyle style = workbook.createCellStyle();
         if (totalRows >= 2 ) {
             for (int i = 2 ; i <= totalRows; i++) {
                 String lastRowCellContent = sheet.getRow(i - 1).getCell(column).getStringCellValue();
@@ -404,7 +399,7 @@ public class ExeclProcessBenDB {
                         CellRangeAddress cellRangeAddress = new CellRangeAddress(firstRow, lastRow, column, column);
                         sheet.addMergedRegion(cellRangeAddress);
 //                        sheet.getRow(i - 1).getCell(column).setCellValue(lastRowCellContent +"("+(lastRow - firstRow)+")");
-                        setRegionStyle(sheet,cellRangeAddress,workbook);
+                        setRegionStyle(sheet,cellRangeAddress,workbook,style);
                         lastRow++;
                         firstRow = lastRow;
                     }
@@ -413,16 +408,16 @@ public class ExeclProcessBenDB {
                 if ((i == totalRows) && (lastRow > firstRow)) {
                     CellRangeAddress cellRangeAddress = new CellRangeAddress(firstRow, lastRow, column, column);
                     sheet.addMergedRegion(cellRangeAddress);
-                    setRegionStyle(sheet,cellRangeAddress,workbook);
+                    setRegionStyle(sheet,cellRangeAddress,workbook, style);
                 }
             }
         }
 
     }
 
-    private static void setRegionStyle(HSSFSheet sheet, CellRangeAddress region, HSSFWorkbook workbook) {
 
-        HSSFCellStyle style = workbook.createCellStyle();
+    private static void setRegionStyle(HSSFSheet sheet, CellRangeAddress region,
+        HSSFWorkbook workbook, HSSFCellStyle style) {
         HSSFCellStyle cs = style;
         style.setVerticalAlignment(VerticalAlignment.CENTER);
         style.setAlignment(HorizontalAlignment.CENTER_SELECTION);
