@@ -64,46 +64,45 @@ public class ExeclProcessBenDB {
         List<YQ2> gyq = getYq2s(gyqVo, s,0);
 
 
-        BdbVo myqVo = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=中风险");
-        String s2 = "中风险(" + myqVo.getCount() + ")";
-        List<YQ2> myq = getYq2s(myqVo, s2,1);
-
-        sort(s, gyq, s2, myq);
-        System.out.println(gyq);
+//        BdbVo myqVo = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=中风险");
+//        String s2 = "中风险(" + myqVo.getCount() + ")";
+//        List<YQ2> myq = getYq2s(myqVo, s2,1);
+        sort(s, gyq);
+//        System.out.println(gyq);
 
 
         BdbVo tg = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=今日调高");
-        BdbVo tm = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=今日调中");
-        tg.getData().addAll(tm.getData());
+//        BdbVo tm = getBdbVo("http://m.bendibao.com/news/gelizhengce/fxmd_data.php?level=今日调中");
+//        tg.getData().addAll(tm.getData());
         Set<String> collect = tg.getData().stream()
             .flatMap(r -> r.getQu().stream().map(rr -> rr.getQu())).collect(Collectors.toSet());
         return Pair.create(gyq,collect);
 
     }
 
-    private void sort(String s, List<YQ2> gyq, String s2, List<YQ2> myq) {
+    private void sort(String s, List<YQ2> gyq) {
         gyq.sort(new Comparator<YQ2>() {
             @Override
             public int compare(YQ2 o1, YQ2 o2) {
                 return backGroup(o2) - backGroup(o1);
             }
         });
-        myq.sort(new Comparator<YQ2>() {
-            @Override
-            public int compare(YQ2 o1, YQ2 o2) {
-                return backGroup(o2) - backGroup(o1);
-            }
-        });
+//        myq.sort(new Comparator<YQ2>() {
+//            @Override
+//            public int compare(YQ2 o1, YQ2 o2) {
+//                return backGroup(o2) - backGroup(o1);
+//            }
+//        });
 
         gyq.forEach(r -> {
             r.setProvince(r.getProvince() + "(" + countm.get(s + r.getProvince()) + ")");
         });
 
-        myq.forEach(r -> {
-            r.setProvince(r.getProvince() + "(" + countm.get(s2 + r.getProvince()) + ")");
-        });
+//        myq.forEach(r -> {
+//            r.setProvince(r.getProvince() + "(" + countm.get(s2 + r.getProvince()) + ")");
+//        });
 
-        gyq.addAll(myq);
+//        gyq.addAll(myq);
     }
 
     private BdbVo getBdbVo(String url) throws IOException {
@@ -147,13 +146,13 @@ public class ExeclProcessBenDB {
         List<YQ2> gyq = paseHtml(g, s,0);
 
 //        Elements m = select.select("div.middle.info-item");
-        Elements m = select;
-        String text2 = doc.select("div.fx-item.middle-fx").text();
-        String[] split2 = text2.split("\\s");
-        String s2 = "中风险(" + split2[0].substring(0, split2[0].length() - 1) + ")";
-        List<YQ2> myq = paseHtml(m,s2 ,1);
+//        Elements m = select;
+//        String text2 = doc.select("div.fx-item.middle-fx").text();
+//        String[] split2 = text2.split("\\s");
+//        String s2 = "中风险(" + split2[0].substring(0, split2[0].length() - 1) + ")";
+//        List<YQ2> myq = paseHtml(m,s2 ,1);
 
-        sort(s, gyq, s2, myq);
+        sort(s, gyq);
 
         Elements md = select.select("div.tiaodi.info-item");
         List<YQ2> mdyq = paseHtml(md, "",5);
